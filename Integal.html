@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🛰️ถอดรหัสพื้นที่ธรรมชาติด้วยอินทิกรัล:จากเส้นขอบใบไม้สู่เส้นขอบแผนที่</title>
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="integal.css">
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="university-logo">
+                <img src="logo.png" alt="Buranarumluk school">
+            </div>
+            <h1 class="kanit-font">🛰️ เครื่องคำนวณพื้นที่จากภาพดาวเทียม</h1>
+            <p class="kanit-font">อัปโหลดภาพแผนที่ กำหนดมาตราส่วน และคำนวณพื้นที่อย่างแม่นยำ</p>
+        </div>
+
+        <div class="main-grid">
+            <div class="control-panel">
+                <div class="card">
+                    <h2 class="kanit-font">📁 อัปโหลดภาพ</h2>
+                    <input type="file" id="imageInput" class="file-input" accept="image/*">
+                    <button class="upload-btn kanit-font" onclick="document.getElementById('imageInput').click()">
+                        📤 เลือกภาพแผนที่ดาวเทียม
+                    </button>
+                </div>
+
+                <div class="card" id="scaleSection" style="display: none;">
+                    <h2 class="kanit-font">📏 กำหนดมาตราส่วน</h2>
+                    <div id="scaleInstructions">
+                        <div class="alert alert-warning kanit-font">
+                            <strong>ขั้นตอน : คลิก 2 จุดบนภาพที่ทราบระยะทางจริง</strong>
+                        </div>
+                        <div class="input-group">
+                            <label class="kanit-font">ระยะทางจริง (เมตร)</label>
+                            <input type="number" id="knownDistance" class="kanit-font" placeholder="เช่น 100">
+                        </div>
+                        <button class="btn kanit-font" id="setScaleBtn" onclick="setScale()" disabled>
+                            ✅ ตั้งมาตราส่วน
+                        </button>
+                        <p id="scalePoints" class="kanit-font">จุดที่เลือก: 0/2</p>
+                    </div>
+                    <div id="scaleResult" style="display: none;">
+                        <div class="alert alert-success kanit-font">
+                            <strong>✅ มาตราส่วนตั้งแล้ว:</strong> <span id="scaleValue" class="kanit-font">เมตร/พิกเซล</span> 
+                        </div>
+                        <div class="alert alert-info kanit-font">
+                            <strong>ขั้นตอนต่อไป : คลิกรอบๆ พื้นที่ที่ต้องการคำนวณ</strong>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card" id="areaSection" style="display: none;">
+                    <h2 class="kanit-font">🧮 คำนวณพื้นที่</h2>
+                    <div class="input-group">
+                        <label class="kanit-font">หน่วยแสดงผล</label>
+                        <select id="unitSelect" class="kanit-font">
+                            <option value="m²">ตารางเมตร (m²)</option>
+                            <option value="km²">ตารางกิโลเมตร (km²)</option>
+                            <option value="rai">ไร่</option>
+                            <option value="ngan">งาน</option>
+                            <option value="wa">ตารางวา</option>
+                            <option value="hectare">เฮกเตอร์</option>
+                        </select>
+                    </div>
+                    <button class="btn kanit-font" id="calculateBtn" onclick="calculateArea()" disabled>
+                        🧮 คำนวณพื้นที่
+                    </button>
+                    <p id="areaPoints" class="kanit-font">จุดที่เลือก: 0</p>
+                    
+                    <div id="areaResult" style="display: none;">
+                        <div class="result-display">
+                            <h3 id="mainAreaResult" class="kanit-font">พื้นที่: 0</h3>
+                            <ul class="conversion-list kanit-font" id="conversionResults"></ul>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card" id="toolsSection" style="display: none;">
+                    <h2 class="kanit-font">🛠️ เครื่องมือ</h2>
+                    <button class="btn kanit-font" onclick="resetAll()">
+                        🔄 รีเซ็ตทั้งหมด
+                    </button>
+                    <button class="btn kanit-font" id="exportBtn" onclick="exportData()" disabled>
+                        💾 ส่งออกข้อมูล
+                    </button>
+                </div>
+            </div>
+
+            <div class="canvas-container">
+                <h2 style="margin-bottom: 15px;" class="kanit-font">🗺️ แผนที่</h2>
+                <div id="canvasArea" style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center;">
+                    <div class="no-image-placeholder">
+                        <div class="icon">📷</div>
+                        <p class="kanit-font">อัปโหลดภาพแผนที่เพื่อเริ่มต้น</p>
+                    </div>
+                </div>
+                <div class="status-overlay kanit-font" id="statusOverlay" style="display: none;">
+                    <div id="currentMode">โหมด: รอภาพ</div>
+                    <div id="pointCount">จุด: 0</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="instructions kanit-font">
+            <h3>📋 วิธีใช้งาน</h3>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px;">
+                <div>
+                    <h4 style="color: #42a5f5; margin-bottom: 15px;">ขั้นตอนการใช้งาน:</h4>
+                    <ol class="step-list">
+                        <li>อัปโหลดภาพแผนที่ดาวเทียม</li>
+                        <li>คลิก 2 จุดที่ทราบระยะทางจริง</li>
+                        <li>ใส่ระยะทางจริงและตั้งมาตราส่วน</li>
+                        <li>คลิกรอบๆ พื้นที่ที่ต้องการคำนวณ</li>
+                        <li>เลือกหน่วยและกดคำนวณพื้นที่</li>
+                    </ol>
+                </div>
+                <div>
+                    <h4 style="color: #42a5f5; margin-bottom: 15px;">เทคนิคเพื่อความแม่นยำ:</h4>
+                    <ul style="list-style-type: disc; margin-left: 20px;">
+                        <li>ใช้ภาพที่มีความละเอียดสูง</li>
+                        <li>เลือกจุดอ้างอิงที่ชัดเจน (ถนน, อาคาร)</li>
+                        <li>วาดจุดให้ใกล้เคียงกับขอบเขตจริง</li>
+                        <li>ตรวจสอบมาตราส่วนก่อนคำนวณ</li>
+                        <li>ใช้แผนที่ที่มี scale bar หรือ coordinate</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+<script src="integal.js"></script>
+
+</body>
+</html>
